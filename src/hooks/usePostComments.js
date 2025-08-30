@@ -8,7 +8,13 @@ export function usePostComments(postId) {
     abi: CONTRACT_CONFIG.abi,
     functionName: 'totalComments',
     args: [postId],
-    enabled: postId !== undefined
+    enabled: postId !== undefined,
+    query: {
+      staleTime: 60000, // 1 minuto
+      cacheTime: 300000, // 5 minutos
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false
+    }
   });
 
   const { data: comments } = useReadContract({
@@ -16,7 +22,13 @@ export function usePostComments(postId) {
     abi: CONTRACT_CONFIG.abi,
     functionName: 'getComments',
     args: [postId],
-    enabled: postId !== undefined
+    enabled: postId !== undefined,
+    query: {
+      staleTime: 60000, // 1 minuto
+      cacheTime: 300000, // 5 minutos
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false
+    }
   });
 
   return {

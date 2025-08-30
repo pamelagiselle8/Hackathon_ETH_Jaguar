@@ -10,7 +10,13 @@ export function usePostVotes(postId) {
     abi: CONTRACT_CONFIG.abi,
     functionName: 'getVotes',
     args: [postId],
-    enabled: postId !== undefined
+    enabled: postId !== undefined,
+    query: {
+      staleTime: 30000, // 30 segundos
+      cacheTime: 300000, // 5 minutos
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false
+    }
   });
 
   const { data: userVote } = useReadContract({
@@ -18,7 +24,13 @@ export function usePostVotes(postId) {
     abi: CONTRACT_CONFIG.abi,
     functionName: 'myVote',
     args: [postId],
-    enabled: postId !== undefined && !!userAddress
+    enabled: postId !== undefined && !!userAddress,
+    query: {
+      staleTime: 30000, // 30 segundos
+      cacheTime: 300000, // 5 minutos
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false
+    }
   });
 
   return {

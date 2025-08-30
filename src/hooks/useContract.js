@@ -2,17 +2,40 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { CONTRACT_CONFIG, CATEGORY_MAPPING, REVERSE_CATEGORY_MAPPING } from '../services/contract';
+import { getFallbackData } from '../services/fallbackData';
 
 export function useContract() {
   const { address: userAddress } = useAccount();
   const { writeContract, data: hash, isPending } = useWriteContract();
+  const [useFallback, setUseFallback] = useState(false);
 
   // Función para obtener todos los posts
-  const { data: rawPosts, isLoading: isLoadingPosts, refetch: refetchPosts } = useReadContract({
+  const { data: rawPosts, isLoading: isLoadingPosts, refetch: refetchPosts, error } = useReadContract({
     address: CONTRACT_CONFIG.address,
     abi: CONTRACT_CONFIG.abi,
     functionName: 'getAllPosts',
+    query: {
+      staleTime: 10000, // 10 segundos
+      cacheTime: 300000, // 5 minutos
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchInterval: 30000 // Refetch automático cada 30 segundos
+    }
   });
+
+  // Detectar errores de rate limiting y activar fallback
+  useEffect(() => {
+    if (error?.message?.includes('429') || error?.message?.includes('Too Many Requests')) {
+      setUseFallback(true);
+      console.warn('Rate limit detectado, usando datos de respaldo');
+      
+      // Intentar reconectar después de 1 minuto
+      setTimeout(() => {
+        setUseFallback(false);
+        refetchPosts();
+      }, 60000);
+    }
+  }, [error, refetchPosts]);
 
   // Transformar posts del blockchain al formato de nuestra UI
   const transformPost = (post, index) => {
@@ -42,8 +65,13 @@ export function useContract() {
     };
   };
 
-  // Obtener posts transformados
-  const posts = rawPosts ? rawPosts.map(transformPost) : [];
+  // Obtener posts transformados (con fallback)
+  const posts = useFallback 
+    ? getFallbackData() 
+    : (rawPosts ? rawPosts.map(transformPost) : []);
+
+  // Indicar si estamos usando datos de respaldo
+  const isUsingFallback = useFallback;
 
   // Función para crear un post
   const createPost = async (content, category, topics = []) => {
@@ -85,12 +113,13 @@ export function useContract() {
 
   return {
     posts,
-    isLoadingPosts,
+    isLoadingPosts: isLoadingPosts && !useFallback,
     refetchPosts,
     createPost,
     vote,
     userAddress,
     isTransactionPending: isPending,
-    transactionHash: hash
+    transactionHash: hash,
+    isUsingFallback
   };
 }
