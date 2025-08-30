@@ -166,19 +166,6 @@ function NewPost() {
                 maxLength={maxTitulo}
               />
 
-              {/* Categoría */}
-              <Select
-                label="Categoría"
-                placeholder="Selecciona una categoría"
-                value={formData.category}
-                onChange={(value) => handleInputChange('category', value)}
-                data={categories}
-                error={errors.category}
-                required
-                // searchable
-                clearable
-              />
-
               {/* Contenido */}
               <Textarea
                 label="Contenido del post"

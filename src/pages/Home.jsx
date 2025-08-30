@@ -2,12 +2,14 @@ import { ActionIcon, Container } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import Comment from "../components/Comment";
 import { useNavigate } from "react-router";
+import rutas from "../services/routing";
 
 function Home() {
     const navigate = useNavigate();
 
     const handleNewPost = () => {
-        navigate('/new-post');
+        // navigate('/new-post');
+        navigate(rutas.find(r => r.label === "Nueva Publicación").route);
     };
 
     return (

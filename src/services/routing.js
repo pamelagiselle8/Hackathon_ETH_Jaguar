@@ -8,6 +8,8 @@ import {
 import Home from "../pages/Home";
 import NewPost from "../pages/NewPost";
 import Comunidad from "../pages/Comunidad";
+import MisPosts from "../pages/MisPosts";
+import Perfil from "../pages/Perfil";
 
 const rutas = [
   { 
@@ -27,14 +29,14 @@ const rutas = [
   {
     label: "Mis publicaciones",
     route: "/mis-publicaciones",
-    component: Home,
+    component: MisPosts,
     icon: IconMessage,
     navbar: true
   },
   {
     label: "Perfil",
     route: "/perfil",
-    component: Home,
+    component: Perfil,
     icon: IconUser,
     navbar: true
   },
