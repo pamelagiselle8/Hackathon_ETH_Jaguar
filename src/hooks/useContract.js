@@ -83,63 +83,12 @@ export function useContract() {
     }
   };
 
-  // Función para obtener votos de un post
-  const usePostVotes = (postId) => {
-    const { data: votes } = useReadContract({
-      address: CONTRACT_CONFIG.address,
-      abi: CONTRACT_CONFIG.abi,
-      functionName: 'getVotes',
-      args: [postId],
-      enabled: postId !== undefined
-    });
-
-    const { data: userVote } = useReadContract({
-      address: CONTRACT_CONFIG.address,
-      abi: CONTRACT_CONFIG.abi,
-      functionName: 'myVote',
-      args: [postId],
-      enabled: postId !== undefined && !!userAddress
-    });
-
-    return {
-      upvotes: votes ? parseInt(votes[0].toString()) : 0,
-      downvotes: votes ? parseInt(votes[1].toString()) : 0,
-      userVote: userVote ? parseInt(userVote.toString()) : 0
-    };
-  };
-
-  // Función para obtener comentarios
-  const usePostComments = (postId) => {
-    const { data: commentsCount } = useReadContract({
-      address: CONTRACT_CONFIG.address,
-      abi: CONTRACT_CONFIG.abi,
-      functionName: 'totalComments',
-      args: [postId],
-      enabled: postId !== undefined
-    });
-
-    const { data: comments } = useReadContract({
-      address: CONTRACT_CONFIG.address,
-      abi: CONTRACT_CONFIG.abi,
-      functionName: 'getComments',
-      args: [postId],
-      enabled: postId !== undefined
-    });
-
-    return {
-      count: commentsCount ? parseInt(commentsCount.toString()) : 0,
-      comments: comments || []
-    };
-  };
-
   return {
     posts,
     isLoadingPosts,
     refetchPosts,
     createPost,
     vote,
-    usePostVotes,
-    usePostComments,
     userAddress,
     isTransactionPending: isPending,
     transactionHash: hash
