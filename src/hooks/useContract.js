@@ -1,6 +1,6 @@
 // src/hooks/useContract.js
 import { useState, useEffect } from 'react';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useEstimateGas } from 'wagmi';
 import { CONTRACT_CONFIG, CATEGORY_MAPPING, REVERSE_CATEGORY_MAPPING } from '../services/contract';
 import { getFallbackData } from '../services/fallbackData';
 
@@ -92,21 +92,63 @@ export function useContract() {
     }
   };
 
+  // Función para estimar gas de votación
+  const estimateVoteGas = async (postId, voteType) => {
+    try {
+      const functionName = voteType === 'up' ? 'upvote' : 'downvote';
+      
+      const gasEstimate = await useEstimateGas({
+        address: CONTRACT_CONFIG.address,
+        abi: CONTRACT_CONFIG.abi,
+        functionName,
+        args: [postId],
+      });
+      
+      console.log(`Gas estimado para ${voteType}vote:`, gasEstimate.data?.toString());
+      return gasEstimate.data;
+    } catch (error) {
+      console.error('Error estimando gas:', error);
+      return 100000n; // Fallback conservador
+    }
+  };
+
   // Función para votar
   const vote = async (postId, voteType) => {
     try {
       const functionName = voteType === 'up' ? 'upvote' : 'downvote';
       
+      // Configuración optimizada de gas
       await writeContract({
         address: CONTRACT_CONFIG.address,
         abi: CONTRACT_CONFIG.abi,
         functionName,
-        args: [postId]
+        args: [postId],
+        gas: 100000n, // Límite de gas más conservador
+        gasPrice: undefined, // Permite que la wallet maneje el precio del gas
       });
       
       return true;
     } catch (error) {
       console.error('Error voting:', error);
+      
+      // Si falla por gas insuficiente, reintentar con más gas
+      if (error.message?.includes('out of gas') || error.message?.includes('insufficient gas')) {
+        console.log('Reintentando con más gas...');
+        try {
+          await writeContract({
+            address: CONTRACT_CONFIG.address,
+            abi: CONTRACT_CONFIG.abi,
+            functionName,
+            args: [postId],
+            gas: 150000n, // Gas adicional para el reintento
+          });
+          return true;
+        } catch (retryError) {
+          console.error('Error en reintento:', retryError);
+          throw retryError;
+        }
+      }
+      
       throw error;
     }
   };
@@ -117,6 +159,7 @@ export function useContract() {
     refetchPosts,
     createPost,
     vote,
+    estimateVoteGas,
     userAddress,
     isTransactionPending: isPending,
     transactionHash: hash,
