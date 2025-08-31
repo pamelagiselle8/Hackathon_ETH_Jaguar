@@ -26,13 +26,13 @@ const rutas = [
     icon: IconUsers,
     navbar: true
   },
-  // {
-  //   label: "Mis publicaciones",
-  //   route: "/mis-publicaciones",
-  //   component: MisPosts,
-  //   icon: IconMessage,
-  //   navbar: true
-  // },
+  {
+    label: "Mis publicaciones",
+    route: "/mis-publicaciones",
+    component: MisPosts,
+    icon: IconMessage,
+    navbar: true
+  },
   {
     label: "Perfil",
     route: "/perfil",

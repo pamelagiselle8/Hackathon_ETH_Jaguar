@@ -105,7 +105,7 @@ function Comunidad() {
             disabled={!userAddress}
             radius="md"
           >
-            Nuevo Post
+            Nueva publicación
           </Button>
         </Group>
         <Text c="dimmed" size="sm" align="left">
@@ -137,7 +137,7 @@ function Comunidad() {
               leftSection={<IconSearch size={16} />}
               clearable
               flex={1}
-              // w={250}
+              // w={250}x
             />
             <Select
               placeholder="Filtrar por categoría"
@@ -152,7 +152,6 @@ function Comunidad() {
         </Group>
 
         {/* Feed de posts */}
-        {console.log("Posts a mostrar:", displayedPosts)}
         <div>
           {displayedPosts.length === 0 ? (
             <Paper p="xl" radius="md" style={{ textAlign: "center" }}>

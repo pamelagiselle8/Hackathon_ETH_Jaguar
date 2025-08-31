@@ -18,9 +18,11 @@ import {
   IconTrendingUp,
   IconUsers,
   IconMessageCircle,
-  IconPlus,
   IconStar,
   IconUser,
+  IconArrowUp,
+  IconArrowDown,
+  IconMessage,
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router";
 import { useContract } from "../hooks/useContract";
@@ -31,8 +33,10 @@ function Home() {
 
   // Estadísticas rápidas
   const totalPosts = posts.length;
-  const trendingPosts = posts.filter((post) => post.upvotes >= 50 || post.downvotes >= 50).length;
-  const recentPosts = posts.slice(-3); // sacar los ultimos 3 en la lista, no los primeros
+  const trendingPosts = posts.filter(
+    (post) => post.upvotes >= 50 || post.downvotes >= 50
+  ).length;
+  const recentPosts = posts.slice(posts.length - 3, posts.length).reverse();
 
   const statsCards = [
     {
@@ -69,18 +73,18 @@ function Home() {
           }}
         >
           <Group justify="center" h={200}>
-              <div>
-                <Title size="h1" mb="md" align="center">
-                  ¡Bienvenido a REDE! 🚀
-                </Title>
-                <Text size="lg">
-                  La primera red social descentralizada para estudiantes
-                  universitarios
-                </Text>
-                <Text size="md" opacity={0.9}>
-                  Conecta, comparte y construye comunidad en el blockchain
-                </Text>
-              </div>
+            <div>
+              <Title size="h1" mb="md" align="center">
+                ¡Bienvenido a REDE! 🚀
+              </Title>
+              <Text size="lg">
+                La primera red social descentralizada para estudiantes
+                universitarios
+              </Text>
+              <Text size="md" opacity={0.9}>
+                Conecta, comparte y construye comunidad en el blockchain
+              </Text>
+            </div>
             {/* {userAddress ? (
               <Button
                 size="lg"
@@ -126,7 +130,7 @@ function Home() {
         {/* Posts recientes */}
         <div>
           <Group justify="space-between" mb="md">
-            <Title size="h3">Posts Recientes</Title>
+            <Title size="h3">Posts recientes</Title>
             <Button variant="subtle" onClick={() => navigate("/comunidad")}>
               Ver todos
             </Button>
@@ -156,12 +160,24 @@ function Home() {
                       </Badge>
                     )}
                   </Group>
+                  <Title align="left" size="h5" py="xs">
+                    {post.title}
+                  </Title>
                   <Text size="sm" lineClamp={2} mb="sm">
                     {post.content}
                   </Text>
-                  <Group gap="md">
+                  <Group gap="3">
+                    <IconArrowUp color="blue" size={14} />
                     <Text size="xs" c="dimmed">
-                      👍 {post.upvotes} • 💬 {post.comments || 0}
+                       {post.upvotes} •
+                    </Text>
+                    <IconArrowDown color="red" size={14} />
+                    <Text size="xs" c="dimmed">
+                      {post.downvotes} • 
+                    </Text>
+                    <IconMessageCircle color="orange" size={14} />
+                    <Text size="xs" c="dimmed">
+                      {post.comments || 0}
                     </Text>
                   </Group>
                 </Paper>
