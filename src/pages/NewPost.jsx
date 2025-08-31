@@ -95,13 +95,14 @@ function NewPost() {
       // Aquí iría la lógica para enviar el post al backend
       console.log("Datos del post:", formData.content);
       // validarPostAI(formData.content);
-      const Category = Object.freeze({
+      const Category = {
         Queja: 0,
         Opinion: 1,
         Sugerencia: 2,
         VidaUniversitaria: 3,
-      });
-      post(formData.content, Category.Queja, ["clases", "horarios"]);
+      };
+
+      post(formData.content, Category.Opinion, ["clases", "horarios"]);
       // navigate('/');
     } catch (error) {
       console.error("Error al crear el post:", error);

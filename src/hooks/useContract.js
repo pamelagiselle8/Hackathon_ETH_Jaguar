@@ -158,7 +158,7 @@ export function useContract() {
     try {
       const functionName = 'post';
       
-      await writeContract({
+      const response = await writeContract({
         address: CONTRACT_CONFIG.address,
         abi: CONTRACT_CONFIG.abi,
         functionName,
@@ -167,7 +167,7 @@ export function useContract() {
         gasPrice: undefined, // Permite que la wallet maneje el precio del gas
       });
 
-      console.log('Post creado con éxito');
+      console.log(response);
       
       return true;
     } catch (error) {
