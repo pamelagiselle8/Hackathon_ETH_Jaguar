@@ -32,7 +32,7 @@ function Layout({ children }) {
           {children}
         </div>
       </AppShell.Main>
-      <AppShell.Footer p="md">© REDE 2025 - Powered by Blockchain</AppShell.Footer>
+      <AppShell.Footer p="md" style={{ fontSize: '12px', textAlign: 'center' }} c="dimmed">© REDE 2025 - Powered by Blockchain</AppShell.Footer>
     </AppShell>
   );
 }

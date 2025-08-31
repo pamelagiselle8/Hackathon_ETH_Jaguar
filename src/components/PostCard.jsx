@@ -11,7 +11,8 @@ import {
   Button,
   Tooltip,
   Collapse,
-  Divider
+  Divider,
+  Space
 } from '@mantine/core';
 import {
   IconArrowUp,
@@ -37,6 +38,9 @@ function PostCard({ post }) {
   
   // Obtener comentarios del blockchain
   const { count: commentsCount, comments } = usePostComments(post.id);
+
+  // Determinar si el post es trending basado en upvotes
+  const isTrending = upvotes >= 50;
 
   const handleVote = async (voteType) => {
     if (!userAddress || isVoting) return;
@@ -91,7 +95,7 @@ function PostCard({ post }) {
               </Tooltip>
               <Group gap="xs">
                 <Text size="xs" c="dimmed">{post.timeAgo}</Text>
-                {post.trending && (
+                {isTrending && (
                   <Badge color="orange" variant="light" size="xs" leftSection={<IconTrendingUp size={12} />}>
                     Trending
                   </Badge>
@@ -107,13 +111,13 @@ function PostCard({ post }) {
           <Text size="sm" style={{ textAlign: 'left', lineHeight: 1.5 }}>
             {post.content}
           </Text>
-          
+          <Space h="xl" />
           {/* Topics si existen */}
           {post.topics && post.topics.length > 0 && (
-            <Group gap="xs" mt="xs">
+            <Group gap="xs">
               {post.topics.map((topic, index) => (
-                <Badge key={index} color="gray" variant="outline" size="xs">
-                  #{topic}
+                <Badge key={index} color="light-blue" variant="outline" size="xs">
+                  {topic}
                 </Badge>
               ))}
             </Group>
