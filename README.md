@@ -1,5 +1,7 @@
 # **REDE**
 
+🔗 **Demo:** [Ver demo aquí](https://hackathon-eth-jaguar.onrender.com)
+
 Este proyecto busca crear un espacio seguro y abierto para que los estudiantes expresen sus experiencias y consejos dentro de la universidad. A través de un agente de IA, cada comentario es evaluado para evitar palabras ofensivas y, en caso necesario, se sugieren reformulaciones que fomenten el respeto y la construcción de ideas. Una vez validados, los comentarios se almacenan en la blockchain de Ethereum, garantizando inmutabilidad, seguridad y transparencia. Los estudiantes pueden expresar su acuerdo o desacuerdo mediante votos, manteniendo siempre el anonimato de su identidad, lo que refuerza la libertad de expresión dentro de un entorno descentralizado y confiable.
 
 ---
