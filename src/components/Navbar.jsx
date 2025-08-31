@@ -1,31 +1,35 @@
 import { useState } from 'react';
-import {
-  IconCalendarStats,
-  IconDeviceDesktopAnalytics,
-  IconGauge,
-  IconHome2,
-  IconLogout,
-} from '@tabler/icons-react';
+import { useNavigate, useLocation } from 'react-router';
 import { Center, Stack, NavLink } from '@mantine/core';
-
-const mockdata = [
-  { icon: IconHome2, label: 'Inicio' },
-  { icon: IconGauge, label: 'Comunidad' },
-  { icon: IconDeviceDesktopAnalytics, label: 'Mis publicaciones' },
-  { icon: IconCalendarStats, label: 'Perfil' },
-  { icon: IconLogout, label: 'Cerrar sesión' },
-];
+import rutas from '../services/routing';
 
 function Navbar() {
-  const [active, setActive] = useState(0);
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Encontrar el índice activo basado en la ruta actual
+  const activeIndex = rutas.findIndex(ruta => ruta.route === location.pathname);
+  const [active, setActive] = useState(activeIndex >= 0 ? activeIndex : 0);
 
-  const links = mockdata.map((link, index) => (
+  const handleNavigation = (ruta, index) => {
+    setActive(index);
+    if (ruta.route === '/logout') {
+      
+      return;
+    }
+    navigate(ruta.route);
+  };
+
+  // Filtrar solo las rutas que deben aparecer en el navbar
+  const navbarRoutes = rutas.filter(ruta => ruta.navbar);
+
+  const links = navbarRoutes.map((ruta, index) => (
     <NavLink
-      key={link.label}
-      label={link.label}
-      leftSection={<link.icon size={20} stroke={1.5} />}
-      active={index === active}
-      onClick={() => setActive(index)}
+      key={ruta.label}
+      label={ruta.label}
+      leftSection={<ruta.icon size={20} stroke={1.5} />}
+      active={location.pathname === ruta.route}
+      onClick={() => handleNavigation(ruta, index)}
       style={{ borderRadius: 15 }}
     />
   ));

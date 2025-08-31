@@ -1,17 +1,27 @@
-import { useState } from "react";
 import "./App.css";
-import { useFullscreen } from "@mantine/hooks";
-import Home from "./pages/Home";
 import { Route, Routes } from "react-router";
 import Layout from "./components/Layout";
+import rutas from "./services/routing";
+import { Web3Providers } from "./services/wagmi";
 
 function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Home />} />
-      </Routes>
-    </Layout>
+    <Web3Providers>
+      <Layout>
+        <Routes>
+          {rutas.map((ruta) => {
+            const Component = ruta.component;
+            return (
+              <Route
+                key={ruta.route}
+                path={ruta.route}
+                element={<Component />}
+              />
+            );
+          })}
+        </Routes>
+      </Layout>
+    </Web3Providers>
   );
 }
 
