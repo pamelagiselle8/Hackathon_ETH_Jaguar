@@ -55,7 +55,7 @@ function Comunidad() {
   });
 
   const handleNewPost = () => {
-    navigate("/new-post");
+    navigate("/nueva-publicacion");
   };
 
   if (isLoadingPosts) {
