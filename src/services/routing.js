@@ -26,13 +26,13 @@ const rutas = [
     icon: IconUsers,
     navbar: true
   },
-  {
-    label: "Mis publicaciones",
-    route: "/mis-publicaciones",
-    component: MisPosts,
-    icon: IconMessage,
-    navbar: true
-  },
+  // {
+  //   label: "Mis publicaciones",
+  //   route: "/mis-publicaciones",
+  //   component: MisPosts,
+  //   icon: IconMessage,
+  //   navbar: true
+  // },
   {
     label: "Perfil",
     route: "/perfil",
@@ -40,13 +40,13 @@ const rutas = [
     icon: IconUser,
     navbar: true
   },
-  {
-    label: "Cerrar sesión",
-    route: "/logout",
-    component: Home,
-    icon: IconLogout,
-    navbar: true
-  },
+  // {
+  //   label: "Cerrar sesión",
+  //   route: "/logout",
+  //   component: Home,
+  //   icon: IconLogout,
+  //   navbar: true
+  // },
   {
     label: "Nueva Publicación",
     route: "/nueva-publicacion",

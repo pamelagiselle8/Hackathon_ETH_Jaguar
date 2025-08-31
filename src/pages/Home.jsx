@@ -19,7 +19,7 @@ import {
   IconUsers,
   IconMessageCircle,
   IconPlus,
-  IconBookmark,
+  IconStar,
   IconUser,
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router";
@@ -31,8 +31,8 @@ function Home() {
 
   // Estadísticas rápidas
   const totalPosts = posts.length;
-  const trendingPosts = posts.filter((post) => post.upvotes >= 50).length;
-  const recentPosts = posts.slice(0, 3); // Últimos 3 posts
+  const trendingPosts = posts.filter((post) => post.upvotes >= 50 || post.downvotes >= 50).length;
+  const recentPosts = posts.slice(-3); // sacar los ultimos 3 en la lista, no los primeros
 
   const statsCards = [
     {
@@ -207,19 +207,19 @@ function Home() {
 
           <Card padding="md" radius="md" withBorder>
             <Group mb="md">
-              <IconBookmark size={24} />
-              <Title size="h4">Mis Posts</Title>
+              <IconStar size={24} />
+              <Title size="h4">Trending</Title>
             </Group>
             <Text size="sm" c="dimmed" mb="md">
-              Administra todas tus publicaciones
+              Explora los posts más populares en la comunidad
             </Text>
             <Button
               variant="light"
               fullWidth
-              onClick={() => navigate("/mis-publicaciones")}
+              onClick={() => navigate("/comunidad")}
               disabled={!userAddress}
             >
-              Ver Mis Posts
+              Ver posts trending
             </Button>
           </Card>
         </SimpleGrid>

@@ -56,9 +56,10 @@ export function useContract() {
 
         return {
             id: index,
-            title: post.content.substring(0, 50) + (post.content.length > 50 ? "..." : ""),
+            title: post.title,
             content: post.content,
-            authorName: `${post.author.substring(0, 6)}...${post.author.substring(38)}`,
+            // authorName: `${post.author.substring(0, 6)}...${post.author.substring(38)}`,
+            authorName: `Usuario ${post.author.substring(0, 6)}...${post.author.substring(38)}`,
             authorAddress: post.author,
             timeAgo,
             category: CATEGORY_MAPPING[post.category] || "opinion",

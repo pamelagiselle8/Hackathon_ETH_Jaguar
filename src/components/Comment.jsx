@@ -69,9 +69,9 @@ function Reply({ content, authorName, timeAgo }) {
               <IconArrowDown size={14} />
             </ActionIcon>
             <Text fz="xs">{downvotes}</Text>
-            <Button variant="subtle" size="xs" leftSection={<IconMessageCircle size={12} />}>
+            {/* <Button variant="subtle" size="xs" leftSection={<IconMessageCircle size={12} />}>
               Reply
-            </Button>
+            </Button> */}
           </Group>
         </div>
       </Group>

@@ -104,41 +104,6 @@ function MyPostCard({ post, onEdit, onDelete }) {
               </Group>
             </div>
           </Group>
-
-          <Group gap="xs">
-            {getCategoryBadge()}
-            <Menu shadow="md" width={200}>
-              <Menu.Target>
-                <ActionIcon variant="subtle" color="gray">
-                  <IconDots size={16} />
-                </ActionIcon>
-              </Menu.Target>
-
-              <Menu.Dropdown>
-                <Menu.Label>Acciones</Menu.Label>
-                <Menu.Item
-                  leftSection={<IconEye size={14} />}
-                  onClick={() => console.log("Ver post completo")}
-                >
-                  Ver completo
-                </Menu.Item>
-                <Menu.Item
-                  leftSection={<IconEdit size={14} />}
-                  onClick={() => onEdit(post)}
-                >
-                  Editar
-                </Menu.Item>
-                <Menu.Divider />
-                <Menu.Item
-                  color="red"
-                  leftSection={<IconTrash size={14} />}
-                  onClick={() => onDelete(post)}
-                >
-                  Eliminar
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Group>
         </Group>
 
         {/* Contenido del post */}
@@ -192,77 +157,6 @@ function MyPostCard({ post, onEdit, onDelete }) {
         </Group>
       </Stack>
     </Paper>
-  );
-}
-
-// Modal para editar post
-function EditPostModal({ post, opened, onClose, onSave }) {
-  const [formData, setFormData] = useState({
-    title: "",
-    content: "",
-    category: "",
-  });
-
-  useEffect(() => {
-    if (post) {
-      setFormData({
-        title: post.title,
-        content: post.content,
-        category: post.category,
-      });
-    }
-  }, [post]);
-
-  const handleSave = () => {
-    onSave({ ...post, ...formData });
-    onClose();
-  };
-
-  return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title="Editar Publicación"
-      size="lg"
-    >
-      <Stack gap="md">
-        <TextInput
-          label="Título"
-          value={formData.title}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, title: e.target.value }))
-          }
-          required
-        />
-
-        <Select
-          label="Categoría"
-          value={formData.category}
-          onChange={(value) =>
-            setFormData((prev) => ({ ...prev, category: value }))
-          }
-          data={categories.filter((cat) => cat.value !== "all")}
-          required
-        />
-
-        <Textarea
-          label="Contenido"
-          value={formData.content}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, content: e.target.value }))
-          }
-          minRows={4}
-          required
-        />
-
-        <Group justify="flex-end">
-          <Button variant="subtle" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSave}>Guardar cambios</Button>
-        </Group>
-      </Stack>
-    </Modal>
   );
 }
 

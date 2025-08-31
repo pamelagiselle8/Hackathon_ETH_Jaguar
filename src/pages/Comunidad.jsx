@@ -16,6 +16,7 @@ import {
   Center,
   Loader,
   Alert,
+  TagsInput, // 1. Importar TagsInput
 } from "@mantine/core";
 import {
   IconArrowUp,
@@ -26,6 +27,7 @@ import {
   IconTrendingUp,
   IconAlertCircle,
   IconRefresh,
+  IconSearch, // 2. Importar el ícono de búsqueda
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router";
 import PostCard from "../components/PostCard";
@@ -36,23 +38,40 @@ function Comunidad() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("recent");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchTags, setSearchTags] = useState([]); // 3. Añadir estado para los tags de búsqueda
 
   // Usar el hook del contrato
   const { posts, isLoadingPosts, refetchPosts, userAddress, isUsingFallback } =
     useContract();
 
-  // Filtrar posts por categoría
-  const filteredPosts = posts.filter(
-    (post) => selectedCategory === "all" || post.category === selectedCategory
-  );
-
-  // Ordenar posts según la tab activa
-  const sortedPosts = [...filteredPosts].sort((a, b) => {
-    if (activeTab === "trending") {
-      return b.upvotes - b.downvotes - (a.upvotes - a.downvotes);
-    }
-    return 0; // Para 'recent' mantener el orden original
-  });
+  // Lógica de filtrado y ordenamiento en cadena
+  const displayedPosts = posts
+    .filter((post) => {
+      // 4.1: Filtrar por categoría
+      return selectedCategory === "all" || post.category === selectedCategory;
+    })
+    .filter((post) => {
+      // 4.2: Filtrar por tags de búsqueda
+      if (searchTags.length === 0) {
+        return true; // Si no hay tags de búsqueda, mostrar todos
+      }
+      // Comprobar si alguno de los tags del post está en los tags de búsqueda
+      return post.topics && post.topics.some((tag) => searchTags.includes(tag));
+    })
+    .filter((post) => {
+      // 4.3: Filtrar para la pestaña "trending"
+      if (activeTab === "trending") {
+        return post.upvotes > 50;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      // 4.4: Ordenar según la pestaña activa
+      if (activeTab === "trending") {
+        return b.upvotes - a.upvotes; // Ordenar por más upvotes
+      }
+      return b.id - a.id; // Ordenar por más reciente
+    });
 
   const handleNewPost = () => {
     navigate("/nueva-publicacion");
@@ -74,20 +93,7 @@ function Comunidad() {
   return (
     <Container size="xl">
       <Stack gap="lg">
-        {/* Alerta de conexión */}
-        {!userAddress && (
-          <Alert
-            icon={<IconAlertCircle size={16} />}
-            title="Wallet no conectada"
-            color="yellow"
-            align="left"
-          >
-            <Text size="sm" c="dimmed">Conecta tu wallet para votar, comentar y crear posts en el
-            blockchain.</Text>
-          </Alert>
-        )}
-
-        {/* Header */}
+        {/* ...código existente de Alerta y Header... */}
         <Group justify="space-between" align="center">
           <Group>
             <Title size="h2">Comunidad Universitaria</Title>
@@ -97,6 +103,7 @@ function Comunidad() {
             onClick={handleNewPost}
             size="sm"
             disabled={!userAddress}
+            radius="md"
           >
             Nuevo Post
           </Button>
@@ -121,92 +128,43 @@ function Comunidad() {
             </Tabs.List>
           </Tabs>
 
-          <Select
-            placeholder="Filtrar por categoría"
-            data={categories}
-            value={selectedCategory}
-            onChange={setSelectedCategory}
-            leftSection={<IconFilter size={16} />}
-            clearable={false}
-            w={250}
-          />
+          {/* 5. Añadir el componente TagsInput y agruparlo con el Select */}
+          <Group align="space-between" w="100%">
+            <TagsInput
+              placeholder="Buscar por tema..."
+              value={searchTags}
+              onChange={setSearchTags}
+              leftSection={<IconSearch size={16} />}
+              clearable
+              flex={1}
+              // w={250}
+            />
+            <Select
+              placeholder="Filtrar por categoría"
+              data={categories}
+              value={selectedCategory}
+              onChange={setSelectedCategory}
+              leftSection={<IconFilter size={16} />}
+              clearable={false}
+              w={220}
+            />
+          </Group>
         </Group>
 
         {/* Feed de posts */}
+        {console.log("Posts a mostrar:", displayedPosts)}
         <div>
-          {sortedPosts.length === 0 ? (
+          {displayedPosts.length === 0 ? (
             <Paper p="xl" radius="md" style={{ textAlign: "center" }}>
               <Text c="dimmed">
-                {selectedCategory === "all"
-                  ? "No hay posts disponibles en el blockchain."
-                  : "No hay posts en esta categoría."}
+                No se encontraron posts con los filtros actuales.
               </Text>
-              <Button
-                mt="md"
-                variant="light"
-                onClick={handleNewPost}
-                leftSection={<IconPlus size={16} />}
-                disabled={!userAddress}
-              >
-                Crear el primer post
-              </Button>
             </Paper>
           ) : (
-            sortedPosts.map((post) => <PostCard key={post.id} post={post} />)
+            displayedPosts.map((post) => <PostCard key={post.id} post={post} />)
           )}
         </div>
-
-        {/* Información adicional */}
-        <Paper p="md" radius="md" bg="gray.0">
-          <Text size="xs" c="dimmed" ta="center">
-            💡 Todos los posts están almacenados en el blockchain de forma
-            permanente e inmutable.
-          </Text>
-        </Paper>
       </Stack>
-
-      {/* Botón flotante alternativo para móviles */}
-      <ActionIcon
-        onClick={handleNewPost}
-        size="xl"
-        radius="xl"
-        variant="filled"
-        color="blue"
-        disabled={!userAddress}
-        style={{
-          position: "fixed",
-          bottom: "20px",
-          right: "20px",
-          zIndex: 1000,
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-          width: "56px",
-          height: "56px",
-          display: "block",
-        }}
-        aria-label="Crear nuevo post"
-        hiddenFrom="sm"
-      >
-        <IconPlus size={24} />
-      </ActionIcon>
-
-      {/* Alerta informativa sobre rate limiting */}
-      {/* {isUsingFallback ? (
-          <Alert 
-            icon={<IconAlertCircle size={16} />} 
-            title="Modo sin conexión" 
-            color="orange"
-          >
-            Usando datos de demostración debido a limitaciones del servidor. Reintentando conexión automáticamente...
-          </Alert>
-        ) : (
-          <Alert 
-            icon={<IconRefresh size={16} />} 
-            title="Optimización de carga" 
-            color="blue"
-          >
-            Los datos se actualizan automáticamente cada 30 segundos para optimizar el rendimiento del blockchain.
-          </Alert>
-        )} */}
     </Container>
   );
 }
