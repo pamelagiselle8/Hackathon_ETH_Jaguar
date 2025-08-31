@@ -13,19 +13,16 @@ import {
   Avatar,
   Badge,
   ActionIcon,
-  Alert, // Agregar Alert para mostrar sugerencias
+  Alert,
 } from "@mantine/core";
 import { IconArrowLeft, IconSend, IconUser, IconAlertCircle, IconInfoCircle } from "@tabler/icons-react";
 import { useContract } from "../hooks/useContract";
 import { useNavigate } from "react-router";
+import { categories } from "../services/contract";
 import validarPostAI from "../services/apiBackendAI";
 
-const categories = [
-  { value: "opinion", label: "Opinión", color: "blue" },
-  { value: "sugerencia", label: "Sugerencia", color: "green" },
-  { value: "queja", label: "Queja", color: "red" },
-  { value: "vida-universitaria", label: "Vida Universitaria", color: "violet" },
-];
+const MAX_TITULO = 50;
+const MAX_CONTENIDO = 300;
 
 function NewPost() {
   const { post } = useContract();
@@ -38,9 +35,6 @@ function NewPost() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValidatingAI, setIsValidatingAI] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState(null);
-
-  const maxTitulo = 50;
-  const maxContenido = 500;
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -76,10 +70,6 @@ function NewPost() {
       newErrors.content = "El contenido no puede exceder 2000 caracteres";
     }
 
-    // if (!formData.category) {
-    //   newErrors.category = 'Debes seleccionar una categoría';
-    // }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -108,7 +98,7 @@ function NewPost() {
         // El comentario no es válido, mostrar sugerencia
         setAiSuggestion(validationResponse.data.comentario_formalizado);
         setIsSubmitting(false);
-        return; // No continuar con el envío
+        return;
       }
 
       // Si llegamos aquí, el comentario es válido (comentario_formalizado es null)
@@ -116,12 +106,11 @@ function NewPost() {
       const categoria = data.categoria;
       const tags = data.tags || [];
       post(formData.content, categoria, tags);
-      navigate('/');
       
     } catch (error) {
       console.error("Error al crear el post:", error);
       setIsValidatingAI(false);
-      setErrors({ submit: "Error al validar el contenido. Intenta nuevamente." });
+      setErrors({ submit: "El comentario no es coherente o no tiene suficiente contenido válido Intenta nuevamente." });
     } finally {
       setIsSubmitting(false);
     }
@@ -141,23 +130,23 @@ function NewPost() {
     setAiSuggestion(null);
   };
 
-  // const getCategoryBadge = () => {
-  //   if (!formData.category) return null;
+  const getCategoryBadge = () => {
+    if (!formData.category) return null;
 
-  //   const category = categories.find(cat => cat.value === formData.category);
-  //   return (
-  //     <Badge color={category.color} variant="light" size="sm">
-  //       {category.label}
-  //     </Badge>
-  //   );
-  // };
+    const category = categories.find(cat => cat.value === formData.category);
+    return (
+      <Badge color={category.color} variant="light" size="sm">
+        {category.label}
+      </Badge>
+    );
+  };
 
   return (
     <Container size="xl">
 
-      <form onSubmit={handleSubmit}>
+      <form size="xl" onSubmit={handleSubmit}>
         <Stack gap="xl">
-          <Container size="xl">
+          <Container w="100%">
             {/* Header con botón de regreso */}
             <Group mb="xl">
               <ActionIcon
@@ -204,8 +193,8 @@ function NewPost() {
                     onChange={(e) => handleInputChange("title", e.target.value)}
                     error={errors.title}
                     required
-                    description={`${formData.title.length}/${maxTitulo} caracteres`}
-                    maxLength={maxTitulo}
+                    description={`${formData.title.length}/${MAX_TITULO} caracteres`}
+                    maxLength={MAX_TITULO}
                     disabled={isValidatingAI}
                   />
 
@@ -222,29 +211,14 @@ function NewPost() {
                     minRows={6}
                     maxRows={12}
                     autosize
-                    description={`${formData.content.length}/${maxContenido} caracteres`}
-                    maxLength={maxContenido}
+                    description={`${formData.content.length}/${MAX_CONTENIDO} caracteres`}
+                    maxLength={MAX_CONTENIDO}
                     disabled={isValidatingAI}
                   />
 
                   
                 </Stack>
               </Paper>
-
-              {/* Preview del contenido si hay algo escrito */}
-                  {formData.title && formData.content && (
-                    <Paper bg="gray.0" p="md" radius="md">
-                      <Text size="xs" c="dimmed" mb="xs">
-                        Vista previa:
-                      </Text>
-                      <Text fw={600} mb="xs" align="left">
-                        {formData.title}
-                      </Text>
-                      <Text size="sm" style={{ whiteSpace: "pre-wrap" }} align="left">
-                        {formData.content}
-                      </Text>
-                    </Paper>
-                  )}
 
               {/* Alerta de sugerencia de AI */}
               {aiSuggestion && (
