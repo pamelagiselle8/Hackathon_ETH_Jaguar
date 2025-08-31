@@ -161,10 +161,8 @@ export function useContract() {
       const response = await writeContract({
         address: CONTRACT_CONFIG.address,
         abi: CONTRACT_CONFIG.abi,
-        functionName,
-        args: [content, category, topics],
-        gas: 100000n, // Límite de gas más conservador
-        gasPrice: undefined, // Permite que la wallet maneje el precio del gas
+        functionName: "post",
+        args: ["no me gustan los gatos otra vez", 0, ["gatos"]],
       });
 
       console.log(response);
