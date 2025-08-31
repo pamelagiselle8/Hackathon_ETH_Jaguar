@@ -51,21 +51,20 @@ function NewPost() {
     });
 
   useEffect(() => {
-    if (isConfirmed) {
-      // Notificación de éxito aquí
-      <Alert
-        icon={<IconCheck size={16} />}
-        title="Post creado exitosamente"
-        color="green"
-      >
-        Su publicación ha sido confirmada en el blockchain
-      </Alert>;
-
-      delay(3000).then(() => {
-        navigate("/"); // Redirigir a inicio
-      });
-    }
-  }, [isConfirmed, navigate]);
+      if (isConfirmed) {
+        // Notificación de éxito
+        setTimeout(() => {
+          <Alert
+            icon={<IconCheck size={16} />}
+            title="Post creado exitosamente"
+            color="green"
+          >
+            Su publicación ha sido confirmada en el blockchain
+          </Alert>;
+        }, 3000);
+        navigate("/");
+      }
+    }, [isConfirmed, navigate]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
