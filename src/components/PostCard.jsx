@@ -14,6 +14,7 @@ import {
   Divider,
   Space,
   Textarea,
+  Alert,
 } from "@mantine/core";
 import {
   IconArrowUp,
@@ -23,11 +24,13 @@ import {
   IconChevronDown,
   IconChevronUp,
   IconSend,
+  IconInfoCircle,
 } from "@tabler/icons-react";
 import { useContract } from "../hooks/useContract";
 import { usePostVotes } from "../hooks/usePostVotes";
 import { usePostComments } from "../hooks/usePostComments";
 import { categories } from "../services/contract";
+import { validarPostAI } from "../services/apiBackendAI";
 import Comment from "./Comment";
 
 function PostCard({ post, reply = false }) {
@@ -37,6 +40,8 @@ function PostCard({ post, reply = false }) {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
+  const [isValidatingAI, setIsValidatingAI] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState(null);
 
   // Obtener votos del blockchain
   const { upvotes, downvotes, userVote } = usePostVotes(post.id);
@@ -55,16 +60,44 @@ function PostCard({ post, reply = false }) {
     if (!replyContent.trim() || !userAddress) return;
 
     setIsSubmittingReply(true);
+    setIsValidatingAI(true);
+    setAiSuggestion(null); // Limpiar sugerencias previas
+
     try {
+      // Validar comentario con IA
+      console.log("Validando comentario con IA:", replyContent);
+      const validationResponse = await validarPostAI(replyContent);
+      
+      setIsValidatingAI(false);
+
+      // Verificar si hay sugerencia de AI
+      const data = validationResponse.data;
+      if (data && data.comentario_formalizado) {
+        // El comentario no es válido, mostrar sugerencia
+        setAiSuggestion(data.comentario_formalizado);
+        setIsSubmittingReply(false);
+        return;
+      }
+
+      // Si llegamos aquí, el comentario es válido (comentario_formalizado es null)
+      console.log("Comentario validado por IA, procediendo a enviar...");
+      
       await addComment(post.id, replyContent);
       setReplyContent("");
       setIsReplying(false);
+      setAiSuggestion(null);
       refetchComments(); // Refrescar comentarios después de añadir uno nuevo
     } catch (error) {
       console.error("Error submitting comment:", error);
+      setIsValidatingAI(false);
     } finally {
       setIsSubmittingReply(false);
     }
+  };
+
+  const acceptAiSuggestion = () => {
+    setReplyContent(aiSuggestion);
+    setAiSuggestion(null);
   };
 
   const handleVote = async (voteType) => {
@@ -175,7 +208,8 @@ function PostCard({ post, reply = false }) {
 
         {/* Acciones del post */}
         <Group gap="md" mt="sm">
-          <Group gap="xs">
+          {!reply && (
+            <Group gap="xs">
             <Tooltip
               label={
                 userAddress ? "Votar positivo" : "Conecta tu wallet para votar"
@@ -216,6 +250,7 @@ function PostCard({ post, reply = false }) {
               {downvotes}
             </Text>
           </Group>
+          )}
 
           <Group gap={2}>
             {!reply && (
@@ -264,11 +299,50 @@ function PostCard({ post, reply = false }) {
               autosize
               disabled={!userAddress || isSubmittingReply}
             />
+            
+            {/* Sugerencia de IA */}
+            {aiSuggestion && (
+              <Alert
+                icon={<IconInfoCircle size={16} />}
+                title="Sugerencia de mejora"
+                color="light-blue"
+                variant="light"
+                radius="lg"
+                style={{ boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)" }}
+              >
+                <Stack style={{ paddingRight: "2.5rem" }}>
+                  <Text size="sm" align="left">
+                    La IA ha detectado que tu comentario podría mejorarse.
+                    Aquí tienes una versión reformulada:
+                  </Text>
+                  <Paper p="sm" bg="gray.0" radius="sm">
+                    <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
+                      {aiSuggestion}
+                    </Text>
+                  </Paper>
+                  <Group gap="sm" justify="center">
+                    <Button
+                      size="sm"
+                      variant="filled"
+                      onClick={acceptAiSuggestion}
+                      radius="md"
+                    >
+                      Aplicar sugerencia
+                    </Button>
+                  </Group>
+                </Stack>
+              </Alert>
+            )}
+
             <Group justify="flex-end">
               <Button
                 size="xs"
                 variant="subtle"
-                onClick={() => setIsReplying(false)}
+                onClick={() => {
+                  setIsReplying(false);
+                  setAiSuggestion(null);
+                  setReplyContent("");
+                }}
                 disabled={isSubmittingReply}
               >
                 Cancelar
@@ -277,10 +351,10 @@ function PostCard({ post, reply = false }) {
                 size="xs"
                 onClick={handleReplySubmit}
                 leftSection={<IconSend size={14} />}
-                loading={isSubmittingReply}
+                loading={isSubmittingReply || isValidatingAI}
                 disabled={!replyContent.trim() || !userAddress}
               >
-                Enviar
+                {isValidatingAI ? "Validando..." : "Enviar"}
               </Button>
             </Group>
           </Stack>

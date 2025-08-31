@@ -48,7 +48,7 @@ function Reply({ content, authorName, timeAgo }) {
           <Text fz="sm" style={{ marginTop: 4, marginBottom: 8, textAlign: 'left' }}>
             {content}
           </Text>
-          <Group gap="xs" style={{ marginTop: 8 }}>
+          {/* <Group gap="xs" style={{ marginTop: 8 }}>
             <ActionIcon 
               onClick={handleUpvote} 
               variant={userVote === 'up' ? 'filled' : 'subtle'} 
@@ -69,10 +69,10 @@ function Reply({ content, authorName, timeAgo }) {
               <IconArrowDown size={14} />
             </ActionIcon>
             <Text fz="xs">{downvotes}</Text>
-            {/* <Button variant="subtle" size="xs" leftSection={<IconMessageCircle size={12} />}>
+            <Button variant="subtle" size="xs" leftSection={<IconMessageCircle size={12} />}>
               Reply
-            </Button> */}
-          </Group>
+            </Button>
+          </Group> */}
         </div>
       </Group>
     </Paper>

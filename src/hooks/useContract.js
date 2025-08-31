@@ -223,6 +223,26 @@ export function useContract() {
     }
   };
 
+  // Función para agregar un comentario
+  const addComment = async (postId, content) => {
+    try {
+      console.log("Agregando comentario al post:", postId, "Contenido:", content);
+      
+      const response = await writeContract({
+        address: CONTRACT_CONFIG.address,
+        abi: CONTRACT_CONFIG.abi,
+        functionName: "comment",
+        args: [postId, content],
+      });
+
+      console.log("Comentario enviado exitosamente:", response);
+      return true;
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      throw error;
+    }
+  };
+
   // Obtener todos los posts de un autor
   const getPostsByAuthor = (authorAddress) => {
     const {
@@ -257,6 +277,7 @@ export function useContract() {
     createPost,
     vote,
     post,
+    addComment,
     estimateVoteGas,
     userAddress,
     isTransactionPending: isPending,

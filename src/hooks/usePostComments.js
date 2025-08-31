@@ -3,7 +3,7 @@ import { useReadContract } from 'wagmi';
 import { CONTRACT_CONFIG } from '../services/contract';
 
 export function usePostComments(postId) {
-  const { data: commentsCount } = useReadContract({
+  const { data: commentsCount, refetch: refetchCount } = useReadContract({
     address: CONTRACT_CONFIG.address,
     abi: CONTRACT_CONFIG.abi,
     functionName: 'totalComments',
@@ -17,7 +17,7 @@ export function usePostComments(postId) {
     }
   });
 
-  const { data: comments } = useReadContract({
+  const { data: comments, refetch: refetchComments } = useReadContract({
     address: CONTRACT_CONFIG.address,
     abi: CONTRACT_CONFIG.abi,
     functionName: 'getComments',
@@ -31,8 +31,13 @@ export function usePostComments(postId) {
     }
   });
 
+  const refetch = async () => {
+    await Promise.all([refetchCount(), refetchComments()]);
+  };
+
   return {
     count: commentsCount ? parseInt(commentsCount.toString()) : 0,
-    comments: comments || []
+    comments: comments || [],
+    refetch
   };
 }
