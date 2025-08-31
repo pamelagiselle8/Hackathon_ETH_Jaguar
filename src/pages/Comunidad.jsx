@@ -24,7 +24,8 @@ import {
   IconPlus,
   IconFilter,
   IconTrendingUp,
-  IconAlertCircle
+  IconAlertCircle,
+  IconRefresh
 } from '@tabler/icons-react';
 import { useNavigate } from 'react-router';
 import PostCard from '../components/PostCard';
@@ -41,7 +42,8 @@ function Comunidad() {
     posts,
     isLoadingPosts,
     refetchPosts,
-    userAddress
+    userAddress,
+    isUsingFallback
   } = useContract();
 
   // Filtrar posts por categoría
@@ -85,6 +87,25 @@ function Comunidad() {
             color="yellow"
           >
             Conecta tu wallet para votar, comentar y crear posts en el blockchain.
+          </Alert>
+        )}
+
+        {/* Alerta informativa sobre rate limiting */}
+        {isUsingFallback ? (
+          <Alert 
+            icon={<IconAlertCircle size={16} />} 
+            title="Modo sin conexión" 
+            color="orange"
+          >
+            Usando datos de demostración debido a limitaciones del servidor. Reintentando conexión automáticamente...
+          </Alert>
+        ) : (
+          <Alert 
+            icon={<IconRefresh size={16} />} 
+            title="Optimización de carga" 
+            color="blue"
+          >
+            Los datos se actualizan automáticamente cada 30 segundos para optimizar el rendimiento del blockchain.
           </Alert>
         )}
 

@@ -28,7 +28,24 @@ export const config = createConfig({
     connectors,
 });
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            retry: (failureCount, error) => {
+                // No reintentar si es rate limiting (429)
+                if (error?.message?.includes('429') || error?.message?.includes('Too Many Requests')) {
+                    return false;
+                }
+                return failureCount < 3;
+            },
+            retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+            staleTime: 30000, // 30 segundos por defecto
+            cacheTime: 300000, // 5 minutos por defecto
+            refetchOnWindowFocus: false,
+            refetchOnReconnect: false,
+        },
+    },
+});
 
 export function Web3Providers({children}) {
     return (

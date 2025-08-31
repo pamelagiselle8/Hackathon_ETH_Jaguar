@@ -18,10 +18,12 @@ import {
   IconTrendingUp
 } from '@tabler/icons-react';
 import { useContract } from '../hooks/useContract';
+import { usePostVotes } from '../hooks/usePostVotes';
+import { usePostComments } from '../hooks/usePostComments';
 import { categories } from '../services/contract';
 
 function PostCard({ post }) {
-  const { vote, usePostVotes, usePostComments, userAddress } = useContract();
+  const { vote, userAddress } = useContract();
   const [isVoting, setIsVoting] = useState(false);
 
   // Obtener votos del blockchain
