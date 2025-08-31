@@ -152,6 +152,29 @@ export function useContract() {
       throw error;
     }
   };
+  
+  // Funcion para hacer un post
+  const post = async (content, category, topics = []) => {
+    try {
+      const functionName = 'post';
+      
+      await writeContract({
+        address: CONTRACT_CONFIG.address,
+        abi: CONTRACT_CONFIG.abi,
+        functionName,
+        args: [content, category, topics],
+        gas: 100000n, // Límite de gas más conservador
+        gasPrice: undefined, // Permite que la wallet maneje el precio del gas
+      });
+
+      console.log('Post creado con éxito');
+      
+      return true;
+    } catch (error) {
+      console.error('Error posting:', error);
+      throw error;
+    }
+  };
 
   return {
     posts,
@@ -159,6 +182,7 @@ export function useContract() {
     refetchPosts,
     createPost,
     vote,
+    post,
     estimateVoteGas,
     userAddress,
     isTransactionPending: isPending,

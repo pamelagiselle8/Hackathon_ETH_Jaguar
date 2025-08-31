@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Container,
   Paper,
@@ -12,24 +12,26 @@ import {
   Text,
   Avatar,
   Badge,
-  ActionIcon
-} from '@mantine/core';
-import { IconArrowLeft, IconSend, IconUser } from '@tabler/icons-react';
-import { useNavigate } from 'react-router';
+  ActionIcon,
+} from "@mantine/core";
+import { IconArrowLeft, IconSend, IconUser } from "@tabler/icons-react";
+import { useNavigate } from "react-router";
+import validarPostAI from "../services/apiBackendAI";
+import { useContract } from "../hooks/useContract";
 
 const categories = [
-  { value: 'opinion', label: 'Opinión', color: 'blue' },
-  { value: 'sugerencia', label: 'Sugerencia', color: 'green' },
-  { value: 'queja', label: 'Queja', color: 'red' },
-  { value: 'vida-universitaria', label: 'Vida Universitaria', color: 'violet' }
+  { value: "opinion", label: "Opinión", color: "blue" },
+  { value: "sugerencia", label: "Sugerencia", color: "green" },
+  { value: "queja", label: "Queja", color: "red" },
+  { value: "vida-universitaria", label: "Vida Universitaria", color: "violet" },
 ];
 
 function NewPost() {
+  const { post } = useContract();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    category: ''
+    title: "",
+    content: "",
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,16 +40,16 @@ function NewPost() {
   const maxContenido = 500;
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
-    
+
     // Limpiar error del campo cuando el usuario empiece a escribir
     if (errors[field]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [field]: null
+        [field]: null,
       }));
     }
   };
@@ -56,24 +58,24 @@ function NewPost() {
     const newErrors = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = 'El título es requerido';
+      newErrors.title = "El título es requerido";
     } else if (formData.title.length < 5) {
-      newErrors.title = 'El título debe tener al menos 5 caracteres';
+      newErrors.title = "El título debe tener al menos 5 caracteres";
     } else if (formData.title.length > 100) {
-      newErrors.title = 'El título no puede exceder 100 caracteres';
+      newErrors.title = "El título no puede exceder 100 caracteres";
     }
 
     if (!formData.content.trim()) {
-      newErrors.content = 'El contenido es requerido';
+      newErrors.content = "El contenido es requerido";
     } else if (formData.content.length < 10) {
-      newErrors.content = 'El contenido debe tener al menos 10 caracteres';
+      newErrors.content = "El contenido debe tener al menos 10 caracteres";
     } else if (formData.content.length > 2000) {
-      newErrors.content = 'El contenido no puede exceder 2000 caracteres';
+      newErrors.content = "El contenido no puede exceder 2000 caracteres";
     }
 
-    if (!formData.category) {
-      newErrors.category = 'Debes seleccionar una categoría';
-    }
+    // if (!formData.category) {
+    //   newErrors.category = 'Debes seleccionar una categoría';
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -81,7 +83,8 @@ function NewPost() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    console.log("Submitting form with data:", formData);
+
     if (!validateForm()) {
       return;
     }
@@ -90,45 +93,49 @@ function NewPost() {
 
     try {
       // Aquí iría la lógica para enviar el post al backend
-      console.log('Datos del post:', formData);
-      
-      // Simular delay de API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Redirigir a la página principal después del éxito
-      navigate('/');
-      
+      console.log("Datos del post:", formData.content);
+      // validarPostAI(formData.content);
+      const Category = Object.freeze({
+        Queja: 0,
+        Opinion: 1,
+        Sugerencia: 2,
+        VidaUniversitaria: 3,
+      });
+      post(formData.content, Category.Queja, ["clases", "horarios"]);
+      // navigate('/');
     } catch (error) {
-      console.error('Error al crear el post:', error);
+      console.error("Error al crear el post:", error);
       // Aquí podrías mostrar un mensaje de error
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getCategoryBadge = () => {
-    if (!formData.category) return null;
-    
-    const category = categories.find(cat => cat.value === formData.category);
-    return (
-      <Badge color={category.color} variant="light" size="sm">
-        {category.label}
-      </Badge>
-    );
-  };
+  // const getCategoryBadge = () => {
+  //   if (!formData.category) return null;
+
+  //   const category = categories.find(cat => cat.value === formData.category);
+  //   return (
+  //     <Badge color={category.color} variant="light" size="sm">
+  //       {category.label}
+  //     </Badge>
+  //   );
+  // };
 
   return (
     <Container size="xl">
       {/* Header con botón de regreso */}
       <Group mb="xl">
-        <ActionIcon 
-          variant="subtle" 
-          onClick={() => navigate('/')}
+        <ActionIcon
+          variant="subtle"
+          onClick={() => navigate("/")}
           aria-label="Volver atrás"
         >
           <IconArrowLeft size={20} />
         </ActionIcon>
-        <Title order={1} size="h2">Crear Nuevo Post</Title>
+        <Title order={1} size="h2">
+          Crear Nuevo Post
+        </Title>
       </Group>
 
       <form onSubmit={handleSubmit}>
@@ -140,16 +147,20 @@ function NewPost() {
                 <IconUser size={20} />
               </Avatar>
               <div>
-                <Text fw={600} size="sm">Usuario Anónimo</Text>
+                <Text fw={600} size="sm">
+                  Usuario Anónimo
+                </Text>
                 <Group gap="xs">
-                  <Text size="xs" c="dimmed">Publicando ahora</Text>
+                  <Text size="xs" c="dimmed">
+                    Publicando ahora
+                  </Text>
                 </Group>
               </div>
-            <Container style={{ flexGrow: 1, textAlign: 'right' }}>
+              {/* <Container style={{ flexGrow: 1, textAlign: 'right' }}>
                 {getCategoryBadge()}
-            </Container>
-          </Group>
-        </Paper>
+            </Container> */}
+            </Group>
+          </Paper>
 
           {/* Formulario */}
           <Paper withBorder p="xl" radius="md">
@@ -159,7 +170,7 @@ function NewPost() {
                 label="Título del post"
                 placeholder="Escribe un título..."
                 value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
+                onChange={(e) => handleInputChange("title", e.target.value)}
                 error={errors.title}
                 required
                 description={`${formData.title.length}/${maxTitulo} caracteres`}
@@ -171,7 +182,7 @@ function NewPost() {
                 label="Contenido del post"
                 placeholder="¿Qué quieres compartir con la comunidad?"
                 value={formData.content}
-                onChange={(e) => handleInputChange('content', e.target.value)}
+                onChange={(e) => handleInputChange("content", e.target.value)}
                 error={errors.content}
                 required
                 minRows={6}
@@ -184,9 +195,13 @@ function NewPost() {
               {/* Preview del contenido si hay algo escrito */}
               {formData.title && formData.content && (
                 <Paper bg="gray.0" p="md" radius="md">
-                  <Text size="xs" c="dimmed" mb="xs">Vista previa:</Text>
-                  <Text fw={600} mb="xs">{formData.title}</Text>
-                  <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                  <Text size="xs" c="dimmed" mb="xs">
+                    Vista previa:
+                  </Text>
+                  <Text fw={600} mb="xs">
+                    {formData.title}
+                  </Text>
+                  <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
                     {formData.content}
                   </Text>
                 </Paper>
@@ -196,21 +211,21 @@ function NewPost() {
 
           {/* Botones de acción */}
           <Group justify="space-between">
-            <Button 
-              variant="subtle" 
-              onClick={() => navigate('/')}
+            <Button
+              variant="subtle"
+              onClick={() => navigate("/")}
               disabled={isSubmitting}
             >
               Cancelar
             </Button>
-            
+
             <Button
               type="submit"
               leftSection={<IconSend size={16} />}
               loading={isSubmitting}
-              disabled={!formData.title || !formData.content || !formData.category}
+              disabled={!formData.title || !formData.content}
             >
-              {isSubmitting ? 'Publicando...' : 'Publicar Post'}
+              {isSubmitting ? "Publicando..." : "Publicar Post"}
             </Button>
           </Group>
         </Stack>
