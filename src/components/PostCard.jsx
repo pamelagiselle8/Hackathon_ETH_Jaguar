@@ -9,28 +9,38 @@ import {
   Badge,
   ActionIcon,
   Button,
-  Tooltip
+  Tooltip,
+  Collapse,
+  Divider,
+  Space
 } from '@mantine/core';
 import {
   IconArrowUp,
   IconArrowDown,
   IconMessageCircle,
-  IconTrendingUp
+  IconTrendingUp,
+  IconChevronDown,
+  IconChevronUp
 } from '@tabler/icons-react';
 import { useContract } from '../hooks/useContract';
 import { usePostVotes } from '../hooks/usePostVotes';
 import { usePostComments } from '../hooks/usePostComments';
 import { categories } from '../services/contract';
+import Comment from './Comment';
 
 function PostCard({ post }) {
   const { vote, userAddress } = useContract();
   const [isVoting, setIsVoting] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   // Obtener votos del blockchain
   const { upvotes, downvotes, userVote } = usePostVotes(post.id);
   
   // Obtener comentarios del blockchain
-  const { count: commentsCount } = usePostComments(post.id);
+  const { count: commentsCount, comments } = usePostComments(post.id);
+
+  // Determinar si el post es trending basado en upvotes
+  const isTrending = upvotes >= 50;
 
   const handleVote = async (voteType) => {
     if (!userAddress || isVoting) return;
@@ -43,6 +53,20 @@ function PostCard({ post }) {
     } finally {
       setIsVoting(false);
     }
+  };
+
+  const toggleComments = () => {
+    setShowComments(!showComments);
+  };
+
+  const formatCommentTime = (timestamp) => {
+    const now = Math.floor(Date.now() / 1000);
+    const diff = now - parseInt(timestamp.toString());
+    
+    if (diff < 60) return 'hace unos segundos';
+    if (diff < 3600) return `hace ${Math.floor(diff / 60)} minutos`;
+    if (diff < 86400) return `hace ${Math.floor(diff / 3600)} horas`;
+    return `hace ${Math.floor(diff / 86400)} días`;
   };
 
   const getCategoryBadge = () => {
@@ -71,7 +95,7 @@ function PostCard({ post }) {
               </Tooltip>
               <Group gap="xs">
                 <Text size="xs" c="dimmed">{post.timeAgo}</Text>
-                {post.trending && (
+                {isTrending && (
                   <Badge color="orange" variant="light" size="xs" leftSection={<IconTrendingUp size={12} />}>
                     Trending
                   </Badge>
@@ -87,13 +111,13 @@ function PostCard({ post }) {
           <Text size="sm" style={{ textAlign: 'left', lineHeight: 1.5 }}>
             {post.content}
           </Text>
-          
+          <Space h="xl" />
           {/* Topics si existen */}
           {post.topics && post.topics.length > 0 && (
-            <Group gap="xs" mt="xs">
+            <Group gap="xs">
               {post.topics.map((topic, index) => (
-                <Badge key={index} color="gray" variant="outline" size="xs">
-                  #{topic}
+                <Badge key={index} color="light-blue" variant="outline" size="xs">
+                  {topic}
                 </Badge>
               ))}
             </Group>
@@ -136,11 +160,40 @@ function PostCard({ post }) {
             variant="subtle" 
             size="xs" 
             leftSection={<IconMessageCircle size={14} />}
+            rightSection={commentsCount > 0 ? (showComments ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />) : null}
             color="gray"
+            onClick={commentsCount > 0 ? toggleComments : undefined}
+            style={{ cursor: commentsCount > 0 ? 'pointer' : 'default' }}
           >
             {commentsCount} comentarios
           </Button>
         </Group>
+
+        {/* Sección de comentarios */}
+        <Collapse in={showComments && commentsCount > 0}>
+          <Divider my="sm" />
+          <Stack gap="sm">
+            <Text size="sm" fw={500} c="dimmed">
+              Comentarios ({commentsCount})
+            </Text>
+            
+            {comments && comments.length > 0 ? (
+              comments.map((comment, index) => (
+                <Comment
+                  key={index}
+                  authorName={comment.author ? `${comment.author.substring(0, 6)}...${comment.author.substring(38)}` : 'Usuario'}
+                  timeAgo={formatCommentTime(comment.timestamp)}
+                  content={comment.content}
+                  avatarSrc={null}
+                />
+              ))
+            ) : commentsCount > 0 ? (
+              <Text size="sm" c="dimmed" ta="center" py="md">
+                Los comentarios se están cargando desde el blockchain...
+              </Text>
+            ) : null}
+          </Stack>
+        </Collapse>
       </Stack>
     </Paper>
   );

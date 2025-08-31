@@ -28,7 +28,7 @@ function Navbar() {
       key={ruta.label}
       label={ruta.label}
       leftSection={<ruta.icon size={20} stroke={1.5} />}
-      active={index === active}
+      active={location.pathname === ruta.route}
       onClick={() => handleNavigation(ruta, index)}
       style={{ borderRadius: 15 }}
     />
