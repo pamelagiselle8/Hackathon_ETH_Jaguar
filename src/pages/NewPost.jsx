@@ -13,11 +13,12 @@ import {
   Avatar,
   Badge,
   ActionIcon,
+  Alert, // Agregar Alert para mostrar sugerencias
 } from "@mantine/core";
-import { IconArrowLeft, IconSend, IconUser } from "@tabler/icons-react";
+import { IconArrowLeft, IconSend, IconUser, IconAlertCircle, IconInfoCircle } from "@tabler/icons-react";
+import { useContract } from "../hooks/useContract";
 import { useNavigate } from "react-router";
 import validarPostAI from "../services/apiBackendAI";
-import { useContract } from "../hooks/useContract";
 
 const categories = [
   { value: "opinion", label: "Opinión", color: "blue" },
@@ -35,6 +36,8 @@ function NewPost() {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isValidatingAI, setIsValidatingAI] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState(null);
 
   const maxTitulo = 50;
   const maxContenido = 500;
@@ -90,26 +93,52 @@ function NewPost() {
     }
 
     setIsSubmitting(true);
+    setIsValidatingAI(true);
+    setAiSuggestion(null); // Limpiar sugerencias previas
 
     try {
-      // Aquí iría la lógica para enviar el post al backend
       console.log("Datos del post:", formData.content);
-      // validarPostAI(formData.content);
-      const Category = {
-        Queja: 0,
-        Opinion: 1,
-        Sugerencia: 2,
-        VidaUniversitaria: 3,
-      };
+      const validationResponse = await validarPostAI(formData.content);
+      
+      setIsValidatingAI(false);
 
-      post(formData.content, Category.Opinion, ["clases", "horarios"]);
-      // navigate('/');
+      // Verificar si hay sugerencia de AI
+      const data = validationResponse.data;
+      if (data && data.comentario_formalizado) {
+        // El comentario no es válido, mostrar sugerencia
+        setAiSuggestion(validationResponse.data.comentario_formalizado);
+        setIsSubmitting(false);
+        return; // No continuar con el envío
+      }
+
+      // Si llegamos aquí, el comentario es válido (comentario_formalizado es null)
+      console.log("Comentario validado por AI, procediendo a publicar...");
+      const categoria = data.categoria;
+      const tags = data.tags || [];
+      post(formData.content, categoria, tags);
+      navigate('/');
+      
     } catch (error) {
       console.error("Error al crear el post:", error);
-      // Aquí podrías mostrar un mensaje de error
+      setIsValidatingAI(false);
+      setErrors({ submit: "Error al validar el contenido. Intenta nuevamente." });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Función para aceptar sugerencia de AI
+  const acceptAiSuggestion = () => {
+    setFormData(prev => ({
+      ...prev,
+      content: aiSuggestion
+    }));
+    setAiSuggestion(null);
+  };
+
+  // Función para rechazar sugerencia de AI
+  const rejectAiSuggestion = () => {
+    setAiSuggestion(null);
   };
 
   // const getCategoryBadge = () => {
@@ -125,110 +154,164 @@ function NewPost() {
 
   return (
     <Container size="xl">
-      {/* Header con botón de regreso */}
-      <Group mb="xl">
-        <ActionIcon
-          variant="subtle"
-          onClick={() => navigate("/")}
-          aria-label="Volver atrás"
-        >
-          <IconArrowLeft size={20} />
-        </ActionIcon>
-        <Title order={1} size="h2">
-          Crear Nuevo Post
-        </Title>
-      </Group>
 
       <form onSubmit={handleSubmit}>
-        <Stack gap="lg">
-          {/* Preview del autor */}
-          <Paper withBorder p="md" radius="md">
-            <Group>
-              <Avatar color="blue" radius="xl">
-                <IconUser size={20} />
-              </Avatar>
-              <div>
-                <Text fw={600} size="sm">
-                  Usuario Anónimo
-                </Text>
-                <Group gap="xs">
-                  <Text size="xs" c="dimmed">
-                    Publicando ahora
-                  </Text>
-                </Group>
-              </div>
-              {/* <Container style={{ flexGrow: 1, textAlign: 'right' }}>
-                {getCategoryBadge()}
-            </Container> */}
+        <Stack gap="xl">
+          <Container size="xl">
+            {/* Header con botón de regreso */}
+            <Group mb="xl">
+              <ActionIcon
+                variant="subtle"
+                onClick={() => navigate("/")}
+                aria-label="Volver atrás"
+                disabled={isValidatingAI}
+              >
+                <IconArrowLeft size={20} />
+              </ActionIcon>
+              <Title order={1} size="h2">
+                Crear Nuevo Post
+              </Title>
             </Group>
-          </Paper>
 
-          {/* Formulario */}
-          <Paper withBorder p="xl" radius="md">
-            <Stack gap="md">
-              {/* Título */}
-              <TextInput
-                label="Título del post"
-                placeholder="Escribe un título..."
-                value={formData.title}
-                onChange={(e) => handleInputChange("title", e.target.value)}
-                error={errors.title}
-                required
-                description={`${formData.title.length}/${maxTitulo} caracteres`}
-                maxLength={maxTitulo}
-              />
+            <Stack gap="lg">
+              {/* Preview del autor */}
+              <Paper withBorder p="md" radius="md">
+                <Group>
+                  <Avatar color="blue" radius="xl">
+                    <IconUser size={20} />
+                  </Avatar>
+                  <div>
+                    <Text fw={600} size="sm">
+                      Usuario Anónimo
+                    </Text>
+                    <Group gap="xs">
+                      <Text size="xs" c="dimmed">
+                        Publicando ahora
+                      </Text>
+                    </Group>
+                  </div>
+                </Group>
+              </Paper>
 
-              {/* Contenido */}
-              <Textarea
-                label="Contenido del post"
-                placeholder="¿Qué quieres compartir con la comunidad?"
-                value={formData.content}
-                onChange={(e) => handleInputChange("content", e.target.value)}
-                error={errors.content}
-                required
-                minRows={6}
-                maxRows={12}
-                autosize
-                description={`${formData.content.length}/${maxContenido} caracteres`}
-                maxLength={maxContenido}
-              />
+              {/* Formulario */}
+              <Paper withBorder p="xl" radius="md">
+                <Stack gap="md">
+                  {/* Título */}
+                  <TextInput
+                    label="Título del post"
+                    placeholder="Escribe un título..."
+                    value={formData.title}
+                    onChange={(e) => handleInputChange("title", e.target.value)}
+                    error={errors.title}
+                    required
+                    description={`${formData.title.length}/${maxTitulo} caracteres`}
+                    maxLength={maxTitulo}
+                    disabled={isValidatingAI}
+                  />
+
+                  {/* Contenido */}
+                  <Textarea
+                    label="Contenido del post"
+                    placeholder="¿Qué quieres compartir con la comunidad?"
+                    value={formData.content}
+                    onChange={(e) =>
+                      handleInputChange("content", e.target.value)
+                    }
+                    error={errors.content}
+                    required
+                    minRows={6}
+                    maxRows={12}
+                    autosize
+                    description={`${formData.content.length}/${maxContenido} caracteres`}
+                    maxLength={maxContenido}
+                    disabled={isValidatingAI}
+                  />
+
+                  
+                </Stack>
+              </Paper>
 
               {/* Preview del contenido si hay algo escrito */}
-              {formData.title && formData.content && (
-                <Paper bg="gray.0" p="md" radius="md">
-                  <Text size="xs" c="dimmed" mb="xs">
-                    Vista previa:
-                  </Text>
-                  <Text fw={600} mb="xs">
-                    {formData.title}
-                  </Text>
-                  <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
-                    {formData.content}
-                  </Text>
-                </Paper>
+                  {formData.title && formData.content && (
+                    <Paper bg="gray.0" p="md" radius="md">
+                      <Text size="xs" c="dimmed" mb="xs">
+                        Vista previa:
+                      </Text>
+                      <Text fw={600} mb="xs" align="left">
+                        {formData.title}
+                      </Text>
+                      <Text size="sm" style={{ whiteSpace: "pre-wrap" }} align="left">
+                        {formData.content}
+                      </Text>
+                    </Paper>
+                  )}
+
+              {/* Alerta de sugerencia de AI */}
+              {aiSuggestion && (
+                <Alert
+                  icon={<IconInfoCircle size={16} />}
+                  title="Sugerencia de mejora"
+                  color="light-blue"
+                  variant="light"
+                  radius="lg"
+                  style={{ boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)" }}
+                >
+                  <Stack style={{ paddingRight: "2.5rem" }}>
+                    <Text size="sm" align="left">
+                      La IA ha detectado que tu comentario podría mejorarse. Aquí tienes una versión reformulada:
+                    </Text>
+                    <Paper p="sm" bg="gray.0" radius="sm">
+                      <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
+                        {aiSuggestion}
+                      </Text>
+                    </Paper>
+                    <Group gap="sm" justify="center">
+                      <Button
+                        size="sm"
+                        variant="filled"
+                        onClick={acceptAiSuggestion}
+                        radius="md"
+                      >
+                        Aplicar sugerencia
+                      </Button>
+                    </Group>
+                  </Stack>
+                </Alert>
               )}
+
+              {/* Error de envío */}
+              {errors.submit && (
+                <Alert
+                  icon={<IconAlertCircle size={16} />}
+                  title="Error"
+                  color="red"
+                  variant="light"
+                >
+                  {errors.submit}
+                </Alert>
+              )}
+
+              {/* Botones de acción */}
+              <Group justify="space-between">
+                <Button
+                  variant="subtle"
+                  onClick={() => navigate("/")}
+                  disabled={isSubmitting || isValidatingAI}
+                >
+                  Cancelar
+                </Button>
+
+                <Button
+                  type="submit"
+                  leftSection={<IconSend size={16} />}
+                  loading={isSubmitting}
+                  disabled={!formData.title || !formData.content || isValidatingAI}
+                >
+                  {isValidatingAI ? "Validando..." : isSubmitting ? "Publicando..." : "Publicar Post"}
+                </Button>
+              </Group>
             </Stack>
-          </Paper>
-
-          {/* Botones de acción */}
-          <Group justify="space-between">
-            <Button
-              variant="subtle"
-              onClick={() => navigate("/")}
-              disabled={isSubmitting}
-            >
-              Cancelar
-            </Button>
-
-            <Button
-              type="submit"
-              leftSection={<IconSend size={16} />}
-              loading={isSubmitting}
-              disabled={!formData.title || !formData.content}
-            >
-              {isSubmitting ? "Publicando..." : "Publicar Post"}
-            </Button>
-          </Group>
+          </Container>
         </Stack>
       </form>
     </Container>

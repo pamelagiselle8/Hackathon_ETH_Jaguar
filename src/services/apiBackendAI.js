@@ -4,7 +4,8 @@ const API_URL = import.meta.env.VITE_AI_BACKEND_URL;
 
 const validarPostAI = async (content) => {
   try {
-    const response = await axios.post(`${API_URL}/comentario`, {
+    console.log("Sending content to AI backend:", content);
+    const response = await axios.post(`${API_URL}/procesar`, {
       content
     });
     console.log("Response from AI backend:", response.data);
